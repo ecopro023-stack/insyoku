@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>発注 — おでんと日本酒 卸</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Zen+Old+Mincho:wght@600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3F2EE;
+  --card:#FFFFFF;
+  --ink:#191B1F;
+  --sumi:#5D6067;
+  --faint:#8C8F97;
+  --rule:#D3D2CB;
+  --hair:#E7E6E0;
+  --blue:#1B4DB1;
+  --blue-d:#143A87;
+  --blue-t:#EDF2FC;
+  --carbon:#E4E9ED;
+  --carbon-ink:#3D4A54;
+  --stamp:#BE3A2B;
+  --ok:#2F6B4F;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{margin:0;padding:0}
+body{
+  background:#DCDAD2;color:var(--ink);
+  font-family:"Zen Kaku Gothic New",system-ui,sans-serif;
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+#app{
+  max-width:430px;margin:0 auto;min-height:100vh;background:var(--paper);
+  position:relative;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 20px 60px rgba(0,0,0,.12);
+  padding-bottom:172px;overflow-x:hidden;
+}
+header{position:sticky;top:0;z-index:40;background:var(--paper);border-bottom:1px solid var(--rule);padding:13px 18px 10px}
+.shopline{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.shop{font-weight:700;font-size:14px;letter-spacing:.02em}
+.today{font-family:"JetBrains Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em;white-space:nowrap}
+h1{font-family:"Zen Old Mincho",serif;font-weight:900;font-size:26px;letter-spacing:.22em;margin:8px 0 0;line-height:1}
+.h1sub{font-size:11.5px;color:var(--faint);margin-top:6px;letter-spacing:.04em}
+
+.list{padding:13px 13px 0}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:4px;margin-bottom:9px;overflow:hidden;transition:border-color .16s}
+.card.on{border-color:var(--blue);box-shadow:inset 3px 0 0 var(--blue)}
+.cardhead{display:flex;align-items:center;gap:11px;width:100%;background:none;border:0;padding:13px 14px;text-align:left;font:inherit;color:inherit;cursor:pointer;min-height:58px}
+.kind{font-family:"Zen Old Mincho",serif;font-weight:700;font-size:14px;letter-spacing:.03em;width:32px;height:32px;flex:0 0 32px;border:1px solid var(--rule);border-radius:2px;display:grid;place-items:center;color:var(--sumi);background:#FAFAF8}
+.card.on .kind{border-color:var(--blue);color:var(--blue);background:var(--blue-t)}
+.cname{flex:1;min-width:0}
+.cname b{display:block;font-size:15.5px;font-weight:700}
+.cmeta{font-size:11px;color:var(--faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmeta .dv{color:var(--blue);font-weight:700}
+.count{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:12.5px;color:var(--blue);flex:0 0 auto}
+.count.zero{color:#C7C6BE}
+.chev{flex:0 0 auto;color:var(--faint);font-size:15px;transition:transform .18s}
+.card.open .chev{transform:rotate(90deg)}
+.items{display:none;border-top:1px solid var(--hair)}
+.card.open .items{display:block}
+
+/* 納品条件パネル */
+.cond{background:var(--blue-t);border-bottom:1px solid #D5E0F3;padding:12px 13px}
+.condrule{font-size:11px;color:var(--carbon-ink);line-height:1.6;margin-bottom:10px;padding-left:16px;position:relative}
+.condrule:before{content:"紙";position:absolute;left:0;top:0;font-family:"Zen Old Mincho",serif;font-size:10px;color:var(--blue);border:1px solid var(--blue);border-radius:2px;padding:0 1px;line-height:1.2}
+.condauto{background:#fff;border:1px solid var(--blue);border-radius:3px;padding:9px 11px;font-size:13px;font-weight:700;color:var(--blue);margin-bottom:10px;line-height:1.4}
+.condauto small{display:block;font-weight:400;font-size:10.5px;color:var(--sumi);margin-top:3px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fields .full{grid-column:1/-1}
+.f label{display:block;font-size:10.5px;font-weight:700;color:var(--sumi);letter-spacing:.04em;margin-bottom:4px}
+.f input,.f select{width:100%;min-height:44px;font:inherit;font-size:16px;padding:0 10px;border:1px solid var(--rule);border-radius:3px;background:#fff;color:var(--ink)}
+.f input[type=date]{font-family:"JetBrains Mono",monospace;font-size:15px}
+
+.itembar{display:flex;gap:8px;padding:10px 12px;border-bottom:1px solid var(--hair);background:#FAFAF8}
+.mini{font:inherit;font-size:12px;font-weight:700;padding:8px 12px;min-height:38px;background:#fff;border:1px solid var(--blue);color:var(--blue);border-radius:3px;cursor:pointer;letter-spacing:.02em}
+.mini:active{background:var(--blue);color:#fff}
+.mini.ghost{border-color:var(--rule);color:var(--faint)}
+.row{display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid var(--hair);min-height:56px;background:#fff}
+.row:last-of-type{border-bottom:0}
+.row.filled{background:#FBFCFF}
+.code{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--faint);flex:0 0 38px;letter-spacing:-.02em}
+.iname{flex:1;min-width:0;font-size:14.5px;line-height:1.25}
+.iname small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:"JetBrains Mono",monospace}
+.step{display:flex;align-items:center;flex:0 0 auto}
+.step button{width:38px;height:38px;flex:0 0 38px;border:1px solid var(--rule);background:#fff;font-family:"JetBrains Mono",monospace;font-size:18px;color:var(--sumi);cursor:pointer;display:grid;place-items:center;padding:0;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.step button.hold{background:var(--blue);color:#fff;border-color:var(--blue)}
+.step button:first-child{border-radius:3px 0 0 3px}
+.step button:last-child{border-radius:0 3px 3px 0}
+.step button:active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.step input{width:48px;height:38px;text-align:center;padding:0;border:1px solid var(--rule);border-left:0;border-right:0;font-family:"JetBrains Mono",monospace;font-size:16px;font-weight:700;background:#fff;color:var(--ink)}
+.step input::-webkit-outer-spin-button,.step input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.step input[type=number]{-moz-appearance:textfield}
+.unit{flex:0 0 28px;font-size:11.5px;color:var(--sumi);font-family:"Zen Old Mincho",serif;font-weight:700}
+.supnote{padding:11px 13px;font-size:11px;color:var(--sumi);background:#FFFCF0;border-top:1px solid var(--hair);line-height:1.55}
+.supnote b{color:var(--stamp)}
+.alert{padding:10px 13px;font-size:11.5px;background:#FDF0EE;border-top:1px solid #F0D5D0;color:var(--stamp);font-weight:700;line-height:1.5}
+
+/* 発注リスト */
+.basket{margin:4px 13px 0;background:#fff;border:1px solid var(--rule);border-radius:4px;overflow:hidden}
+.bhead{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--hair)}
+.bhead b{font-size:13px;letter-spacing:.04em}
+.bhead span{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--faint)}
+.bgrp{padding:10px 14px;border-bottom:1px solid var(--hair)}
+.bgrp:last-child{border-bottom:0}
+.bgrp .g{font-size:11.5px;font-weight:700;color:var(--blue);margin-bottom:5px}
+.bgrp .l{font-size:12.5px;color:var(--sumi);line-height:1.7}
+.bgrp .l em{font-style:normal;font-weight:700;color:var(--ink);font-family:"JetBrains Mono",monospace}
+
+.sendbar{position:fixed;bottom:0;left:0;right:0;z-index:50;max-width:430px;margin:0 auto;background:var(--paper);border-top:1px solid var(--rule);padding:10px 13px calc(10px + env(safe-area-inset-bottom))}
+.tabs{display:flex;gap:2px;margin-bottom:9px}
+.tab{flex:1;font:inherit;font-size:11.5px;font-weight:700;padding:9px 0;min-height:40px;cursor:pointer;background:transparent;border:1px solid var(--rule);border-radius:3px;color:var(--faint);letter-spacing:.06em}
+.tab[aria-selected=true]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.send{width:100%;min-height:56px;font:inherit;font-size:16.5px;font-weight:700;letter-spacing:.06em;background:var(--blue);color:#fff;border:0;border-radius:4px;cursor:pointer}
+.send:disabled{background:#CFCEC7;color:#F3F2EE;cursor:default}
+.send:active:not(:disabled){background:var(--blue-d)}
+
+.scrim{position:fixed;inset:0;z-index:60;background:rgba(25,27,31,.55);display:none;overflow-y:auto}
+.scrim.show{display:block}
+.sheetwrap{max-width:430px;margin:0 auto;min-height:100vh;background:var(--carbon);padding-bottom:130px}
+.sheettop{position:sticky;top:0;z-index:5;background:var(--carbon);border-bottom:1px solid #C4CFD6;padding:12px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sheettop b{font-size:13.5px;letter-spacing:.04em;color:var(--carbon-ink)}
+.xbtn{font:inherit;font-size:13px;font-weight:700;background:none;border:0;color:var(--carbon-ink);cursor:pointer;padding:10px;min-height:44px}
+.steps{display:flex;align-items:center;gap:6px;padding:11px 15px;background:#DDE4E9;font-size:11px;color:var(--carbon-ink);border-bottom:1px solid #C4CFD6}
+.steps i{font-style:normal;width:17px;height:17px;border-radius:50%;background:#fff;border:1px solid var(--carbon-ink);display:grid;place-items:center;font-size:9.5px;font-family:"JetBrains Mono",monospace}
+.steps .cur{font-weight:700}
+.steps .cur i{background:var(--blue);border-color:var(--blue);color:#fff}
+.steps .sep{flex:1;height:1px;background:#B4C0C8}
+.paper{background:#fff;margin:13px 11px;padding:15px 13px 17px;border:1px solid #B9C4CB;box-shadow:0 2px 0 rgba(61,74,84,.09);position:relative}
+.ptitle{font-family:"Zen Old Mincho",serif;font-weight:900;font-size:18px;letter-spacing:.4em;text-align:center;padding-bottom:5px;border-bottom:2.5px solid var(--ink);margin:0 auto 12px;width:fit-content;padding-left:.4em}
+.pto{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;font-size:12px;margin-bottom:10px;line-height:1.65}
+.pto .vendor{font-weight:700;font-size:13.5px}
+.pto .faxno{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--sumi)}
+.pto .right{text-align:right;flex:0 0 auto}
+table.sheet{width:100%;border-collapse:collapse;font-size:12px}
+table.sheet th{background:var(--ink);color:#fff;font-weight:500;font-size:10px;letter-spacing:.05em;padding:5px 3px;border:1px solid var(--ink)}
+table.sheet td{border:1px solid #9C9890;padding:6px 5px;line-height:1.35}
+table.sheet td.c{font-family:"JetBrains Mono",monospace;font-size:10px;text-align:center;color:var(--sumi)}
+table.sheet td.q{text-align:right;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:13.5px;padding-right:6px}
+.freelist{border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+.freerow{display:flex;align-items:baseline;gap:8px;padding:9px 2px;border-bottom:1px dotted var(--rule)}
+.freerow:last-child{border-bottom:0}
+.freerow .n{flex:1;font-size:14.5px;font-weight:500}
+.freerow .x{font-family:"JetBrains Mono",monospace;color:var(--faint);font-size:12px}
+.freerow .v{font-family:"JetBrains Mono",monospace;font-size:16px;font-weight:700;min-width:28px;text-align:right}
+.freerow .u2{font-family:"Zen Old Mincho",serif;font-weight:700;font-size:11.5px;width:24px}
+.pmemo{margin-top:10px;border:1px solid #9C9890;padding:7px 8px;font-size:11.5px;line-height:1.5}
+.pmemo b{font-size:9.5px;letter-spacing:.08em;color:var(--sumi);display:block;margin-bottom:3px}
+.pfoot{margin-top:10px;font-size:10px;color:var(--sumi);line-height:1.6}
+.pfoot .warn{color:var(--stamp);font-weight:700}
+.seal{position:absolute;top:8px;right:10px;width:58px;height:58px;border:2.5px solid var(--stamp);border-radius:50%;color:var(--stamp);display:grid;place-items:center;text-align:center;font-family:"Zen Old Mincho",serif;font-weight:900;font-size:11.5px;line-height:1.15;transform:rotate(-11deg) scale(.4);opacity:0;transition:transform .32s cubic-bezier(.2,1.5,.4,1),opacity .18s}
+.seal.on{transform:rotate(-11deg) scale(1);opacity:.92}
+.mockbar{margin:0 11px 13px;padding:9px 11px;background:#fff;border:1px dashed var(--carbon-ink);font-size:10.5px;color:var(--carbon-ink);line-height:1.55}
+
+.pane{display:none;padding:13px}
+.pane.show{display:block}
+.hrec{background:#fff;border:1px solid var(--rule);border-radius:4px;padding:12px 14px;margin-bottom:9px}
+.hrec .hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.hrec .dt{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700}
+.hrec .st{font-size:10px;font-weight:700;color:var(--ok);letter-spacing:.04em}
+.hrec .bd{font-size:12.5px;color:var(--sumi);line-height:1.65}
+.hrec .bd em{font-style:normal;font-weight:700;color:var(--ink)}
+.hrec .dl{font-size:10.5px;color:var(--blue);font-weight:700;margin-top:6px}
+.trow{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--hair)}
+.trow .tn{flex:1;font-size:13.5px;min-width:0}
+.bararea{flex:0 0 80px;height:7px;background:var(--hair);border-radius:1px;overflow:hidden}
+.bararea i{display:block;height:100%;background:var(--blue)}
+.tv{font-family:"JetBrains Mono",monospace;font-size:13.5px;font-weight:700;flex:0 0 50px;text-align:right}
+.tv span{font-size:9.5px;font-weight:400;color:var(--faint);font-family:"Zen Old Mincho",serif}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.12em;color:var(--faint);border-bottom:1px solid var(--rule);padding-bottom:6px;margin:0 0 10px}
+.demo{background:#FFFCF0;border:1px solid #E0D6B4;border-radius:3px;padding:10px 12px;font-size:11.5px;color:#7A6A3E;line-height:1.55;margin-bottom:13px}
+.empty{text-align:center;padding:44px 20px;color:var(--faint);font-size:13px;line-height:1.8}
+.toast{position:fixed;bottom:126px;left:50%;transform:translateX(-50%) translateY(14px);background:var(--ink);color:var(--paper);padding:12px 20px;border-radius:3px;font-size:13px;font-weight:700;z-index:80;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+:focus-visible{outline:2.5px solid var(--blue);outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="shopline"><span class="shop">おでんと日本酒　卸</span><span class="today" id="today"></span></div>
+    <h1 id="ptitle">発注</h1>
+    <div class="h1sub" id="psub">仕入先6軒 · 数量を入れた分だけ送ります</div>
+  </header>
+  <div class="pane show" id="pane-order">
+    <div class="list" id="list"></div>
+    <div id="basket"></div>
+  </div>
+  <div class="pane" id="pane-hist"></div>
+  <div class="pane" id="pane-sum"></div>
+  <div class="sendbar">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-p="order">発注</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="hist">履歴</button>
+      <button class="tab" role="tab" aria-selected="false" data-p="sum">月の数量</button>
+    </div>
+    <button class="send" id="send" disabled>数量を入れてください</button>
+  </div>
+</div>
+
+<div class="scrim" id="scrim">
+  <div class="sheetwrap">
+    <div class="sheettop"><b id="sheetlbl">内容を確認</b><button class="xbtn" id="close">戻る</button></div>
+    <div class="steps">
+      <span><i>1</i></span><span>数量を入力</span><span class="sep"></span>
+      <span class="cur"><i>2</i></span><span class="cur">内容を確認</span><span class="sep"></span>
+      <span><i>3</i></span><span>送信</span>
+    </div>
+    <div class="mockbar">試作品です。実際のFAXは送信されません。本番はこの紙面をPDFにしてFAX送信APIへ渡します。</div>
+    <div id="sheets"></div>
+    <div style="padding:0 11px 20px"><button class="send" id="confirm">この内容でFAX送信</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SHOP={name:"おでんと日本酒　卸",zip:"810-0041",addr:"福岡県福岡市中央区大名1丁目11-23 リアンナ大名2F",tel:"092-753-9633"};
+
+/* ===== 仕入先マスタ（写真6枚から書き起こし） =====
+   delivery: "pick" = 希望日を店が指定 / "monthu" = 月・木のみ / "gomi" = 先方の表で自動計算 */
+const SUPPLIERS=[
+{ id:"coppelia",badge:"青",name:"コッペリア",kind:"青果",fax:"092-581-3987",tel:"092-581-3965",
+  form:"table",title:"発 注 表",delivery:"pick",
+  rule:"発注表に「月　日（　）納品分」の欄があります。納品日は店が指定する形です。",
+  items:[
+    {code:"11",name:"玉葱",unit:"玉",prev:20},{code:"11-3",name:"剥き玉ねぎ",unit:"玉",prev:0},
+    {code:"16",name:"レタス",unit:"玉",prev:2},{code:"19",name:"大根",unit:"本",prev:6},
+    {code:"26",name:"ミニトマト",unit:"P",prev:1},{code:"22-1",name:"ピーマン2L",unit:"P",prev:1},
+    {code:"40",name:"白ネギL（国産）",unit:"束",prev:2},{code:"44",name:"山芋",unit:"本",prev:1},
+    {code:"32",name:"大葉",unit:"束",prev:1},{code:"46",name:"レモン",unit:"個",prev:4},
+    {code:"66",name:"セロリ",unit:"本",prev:0},{code:"67",name:"アスパラガス",unit:"束",prev:0},
+    {code:"27",name:"椎茸",unit:"P",prev:2},{code:"59",name:"春菊",unit:"P",prev:1},
+    {code:"13",name:"ジャガイモ（馬鈴薯）",unit:"kg",prev:3},{code:"*11",name:"玉子L",unit:"P",prev:2},
+    {code:"39-2",name:"青ねぎカットM（0.5キロ）",unit:"P",prev:2}]},
+{ id:"hanshin",badge:"肉",name:"阪神ミート",kind:"精肉",fax:"092-731-1069",
+  form:"free",title:"発 注 書",delivery:"pick",
+  rule:"手書きの紙に納品日の欄はありませんでした。必要なら希望日を書き添えます。",
+  note:"紙には品名と単位だけ書いてあったので、そのまま登録しています。品目はあとで足せます。",
+  items:[{name:"牛スジ",unit:"kg",prev:5},{name:"食道",unit:"P",prev:2}]},
+{ id:"takamatsu",badge:"種",name:"高松",kind:"おでん種",fax:"092-725-3918",
+  form:"free",title:"発 注 書",delivery:"pick",
+  rule:"手書きの紙に納品日の欄はありませんでした。",
+  items:[{name:"カマンベール",unit:"ケ",prev:1},{name:"ぎょうざ巻",unit:"ケ",prev:2},{name:"白滝",unit:"P",prev:4}]},
+{ id:"kanedai",badge:"酒",name:"カネダイ酒店",kind:"酒販",fax:"092-572-8206",
+  form:"free",title:"発 注 書",delivery:"pick",
+  rule:"手書きの紙に納品日の欄はありませんでした。",
+  items:[{name:"八海山",unit:"本",prev:6},{name:"景虎",unit:"本",prev:6},{name:"村祐",unit:"本",prev:3}]},
+{ id:"seiko",badge:"消",name:"九州静光",kind:"消耗品",fax:"092-481-5773",tel:"092-481-5190",custNo:"90580",
+  form:"seiko",title:"発 注 書",delivery:"monthu",
+  rule:"発注書に「納品は月、木曜日になっています（土日、祝日を除く）」「1回の発注は2本以上でお願いします」。",
+  note:"先方の注記です。<b>1回の発注は2本以上</b>／納品は月・木曜。",
+  items:[
+    {code:"11002",name:"サンレット ブリーチ",spec:"5k",use:"除菌漂白剤",lot:"1本",unit:"本",prev:2},
+    {code:"21128",name:"ダイアラップ",spec:"30×100m",use:"ラップ",lot:"1本",unit:"本",prev:2},
+    {code:"32049",name:"竹天削箸 緑 21cm",spec:"100膳",use:"竹箸",lot:"1PC",unit:"PC",prev:1},
+    {code:"56001",name:"上質 白無地箸袋",spec:"500入",use:"箸袋",lot:"1PC",unit:"PC",prev:1},
+    {code:"55508",name:"R-110 勘定書",spec:"10冊入り",use:"勘定書",lot:"1PC",unit:"PC",prev:0},
+    {code:"55507",name:"会計伝票 S-20C",spec:"10冊入り",use:"伝票",lot:"1PC",unit:"PC",prev:1},
+    {code:"23062",name:"マイボンベL",spec:"1PC=3本",use:"ガスボンベ",lot:"1PC",unit:"PC",prev:2},
+    {code:"30460",name:"CRチャッカマン",spec:"",use:"着火ライター",lot:"1本",unit:"本",prev:0},
+    {code:"30500",name:"袋入楊枝（クリア）",spec:"1000本入",use:"爪楊枝",lot:"1箱",unit:"箱",prev:1},
+    {code:"22916",name:"トイレットロール ラブリバー12R S",spec:"12R",use:"トイレットペーパー",lot:"1PC",unit:"PC",prev:2},
+    {code:"—",name:"発注書",spec:"1セット=15枚",use:"",lot:"1セット",unit:"セット",prev:0}]},
+{ id:"kankyo",badge:"袋",name:"ふくおか環境財団",kind:"事業系ごみ袋",fax:"621-0835",tel:"621-5252",custNo:"105698801",
+  form:"gomi",title:"事業系ごみ袋　注文票",delivery:"gomi",
+  rule:"注文票の納品表から計算しています。月〜木 8:30〜12:00は翌日、12:00以降と時間外は翌々日。金 8:30〜12:00は土曜、それ以降は火曜。土日注文は火曜納品。",
+  note:"先方の注記です。<b>総パック数が2パック以上から</b>。祝日を挟むと5日程度かかります。",
+  items:[
+    {code:"①",name:"可燃 30L 青色",spec:"1パック20枚入",unit:"パック",prev:2},
+    {code:"②",name:"可燃 50L 黄色",spec:"1パック10枚入",unit:"パック",prev:3},
+    {code:"③",name:"可燃 70L 緑色",spec:"1パック10枚入",unit:"パック",prev:0},
+    {code:"④",name:"不燃 50L オレンジ色",spec:"1パック10枚入",unit:"パック",prev:1},
+    {code:"⑤",name:"古紙 50L 白色",spec:"1パック10枚入",unit:"パック",prev:0}]}
+];
+
+let qty={},meta={},history=[],open=null,pane="order";
+const $=s=>document.querySelector(s);
+const key=(s,i)=>s.id+":"+i;
+const q=(s,i)=>qty[key(s,i)]||0;
+const filled=s=>s.items.filter((_,i)=>q(s,i)>0).length;
+const active=()=>SUPPLIERS.filter(s=>filled(s)>0);
+const M=s=>meta[s.id]||(meta[s.id]={date:"",slot:"",memo:""});
+
+const WD=["日","月","火","水","木","金","土"];
+const fmt=d=>`${d.getMonth()+1}/${d.getDate()}(${WD[d.getDay()]})`;
+const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const addD=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const nextWD=(d,w)=>{let x=addD(d,1);while(x.getDay()!==w)x=addD(x,1);return x};
+
+/* 先方の納品ルールから納品日を出す */
+function calcDelivery(s,now){
+  if(s.delivery==="monthu"){           // 月(1)・木(4)のみ
+    const a=nextWD(now,1),b=nextWD(now,4);
+    return a<b?a:b;
+  }
+  if(s.delivery==="gomi"){
+    const d=now.getDay(),h=now.getHours()+now.getMinutes()/60;
+    if(d===0||d===6) return nextWD(now,2);          // 土日 → 火
+    if(d===5) return (h>=8.5&&h<12)?addD(now,1):nextWD(now,2); // 金
+    return (h>=8.5&&h<12)?addD(now,1):addD(now,2);  // 月〜木
+  }
+  return null;
+}
+
+async function load(){try{const r=await window.storage.get("hacchu:history");if(r&&r.value)history=JSON.parse(r.value)}catch(e){}}
+async function save(){try{await window.storage.set("hacchu:history",JSON.stringify(history.slice(0,200)))}catch(e){}}
+
+/* 最終発注日は履歴からのみ。初回は「—」 */
+function lastOrdered(s,name){
+  const h=history.find(x=>x.sup===s.id&&x.lines.some(l=>l.name===name));
+  return h?h.date:"—";
+}
+
+function renderList(){
+  const now=new Date();
+  $("#list").innerHTML=SUPPLIERS.map(s=>{
+    const n=filled(s),isOpen=open===s.id,m=M(s);
+    const auto=calcDelivery(s,now);
+    const shown=auto?fmt(auto):(m.date?fmt(new Date(m.date+"T00:00")):"未指定");
+    const last=history.find(h=>h.sup===s.id);
+    const meta1=`FAX ${s.fax}　·　${last?"前回 "+last.date:"送信履歴なし"}`;
+    const meta2=n?`　·　<span class="dv">${shown} 納品</span>`:"";
+    const gomiTot=s.id==="kankyo"?s.items.reduce((t,_,i)=>t+q(s,i),0):null;
+
+    return `<section class="card ${n?"on":""} ${isOpen?"open":""}" data-s="${s.id}">
+      <button class="cardhead" aria-expanded="${isOpen}">
+        <span class="kind">${s.badge}</span>
+        <span class="cname"><b>${s.name}</b><span class="cmeta">${meta1}${meta2}</span></span>
+        <span class="count ${n?"":"zero"}">${n?n+"品":"—"}</span><span class="chev">›</span>
+      </button>
+      <div class="items">
+        <div class="cond">
+          <div class="condrule">${s.rule}</div>
+          ${auto?`<div class="condauto">今送ると ${fmt(auto)} 納品<small>先方の納品表から計算。祝日は考慮していません。</small></div>`:""}
+          <div class="fields">
+            ${!auto?`<div class="f"><label>納品希望日</label>
+              <input type="date" data-fld="date" data-s="${s.id}" value="${m.date||iso(addD(now,1))}"></div>
+              <div class="f"><label>時間帯</label><select data-fld="slot" data-s="${s.id}">
+                <option value="">指定なし</option><option ${m.slot==="午前"?"selected":""}>午前</option>
+                <option ${m.slot==="午後"?"selected":""}>午後</option></select></div>`:""}
+            <div class="f full"><label>メモ（先方への伝言）</label>
+              <input type="text" data-fld="memo" data-s="${s.id}" value="${m.memo||""}" placeholder="例）いつも通りでお願いします"></div>
+          </div>
+        </div>
+        <div class="itembar">
+          <button class="mini" data-act="prev" data-s="${s.id}">前回と同じ</button>
+          <button class="mini ghost" data-act="clr" data-s="${s.id}">全部消す</button>
+        </div>
+        ${s.items.map((it,i)=>{const v=q(s,i);
+          return `<div class="row ${v?"filled":""}">
+            ${it.code?`<span class="code">${it.code}</span>`:""}
+            <span class="iname">${it.name}<small>最終発注 ${lastOrdered(s,it.name)}${it.spec?"　"+it.spec:""}</small></span>
+            <span class="step">
+              <button data-act="dec" data-s="${s.id}" data-i="${i}" aria-label="${it.name} 減らす">−</button>
+              <input type="number" inputmode="numeric" min="0" value="${v||""}" placeholder="0" data-act="set" data-s="${s.id}" data-i="${i}" aria-label="${it.name} 数量">
+              <button data-act="inc" data-s="${s.id}" data-i="${i}" aria-label="${it.name} 増やす">＋</button>
+            </span><span class="unit">${it.unit}</span></div>`}).join("")}
+        ${gomiTot!==null&&gomiTot>0&&gomiTot<2?`<div class="alert">総パック数が${gomiTot}パックです。先方は2パック以上からの受付です。</div>`:""}
+        ${s.note?`<div class="supnote">${s.note}</div>`:""}
+      </div></section>`;
+  }).join("");
+
+  const a=active(),tot=a.reduce((n,s)=>n+filled(s),0);
+  $("#basket").innerHTML=a.length?`<div class="basket">
+    <div class="bhead"><b>発注リスト</b><span>${a.length}軒 / ${tot}品</span></div>
+    ${a.map(s=>{const au=calcDelivery(s,now),m=M(s);
+      const dd=au?fmt(au):(m.date?fmt(new Date(m.date+"T00:00")):"未指定");
+      return `<div class="bgrp"><div class="g">${s.name}　—　${dd} 納品${m.slot?"（"+m.slot+"）":""}</div>
+      <div class="l">${s.items.map((it,i)=>q(s,i)?`${it.name} <em>${q(s,i)}</em>${it.unit}`:"").filter(Boolean).join("　/　")}</div></div>`}).join("")}
+  </div>`:"";
+
+  const b=$("#send");b.disabled=!a.length;
+  b.textContent=a.length?`${a.length}軒にまとめて送信（${tot}品）`:"数量を入れてください";
+}
+
+function paper(s,stamped){
+  const now=new Date(),m=M(s);
+  const rows=s.items.map((it,i)=>({it,v:q(s,i)})).filter(r=>r.v>0);
+  const auto=calcDelivery(s,now);
+  const dd=auto?fmt(auto):(m.date?fmt(new Date(m.date+"T00:00")):"未指定");
+  let body="";
+  if(s.form==="table"){
+    body=`<table class="sheet"><thead><tr><th style="width:50px">コード</th><th>商品名</th><th style="width:70px">注文数</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td class="c">${r.it.code}</td><td>${r.it.name}</td><td class="q">${r.v}<span style="font-size:9.5px;font-weight:400;padding-left:3px">${r.it.unit}</span></td></tr>`).join("")}</tbody></table>`;
+  }else if(s.form==="seiko"){
+    body=`<table class="sheet"><thead><tr><th style="width:46px">発注コード</th><th>商品名</th><th style="width:48px">規格</th><th style="width:32px">ロット</th><th style="width:48px">発注数</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td class="c">${r.it.code}</td><td>${r.it.name}</td><td class="c">${r.it.spec||""}</td><td class="c">${r.it.lot||""}</td><td class="q">${r.v}<span style="font-size:9.5px;font-weight:400;padding-left:2px">${r.it.unit}</span></td></tr>`).join("")}</tbody></table>`;
+  }else if(s.form==="gomi"){
+    const tp=rows.reduce((n,r)=>n+r.v,0);
+    body=`<table class="sheet"><thead><tr><th style="width:30px"></th><th>区分・容量・色</th><th style="width:70px">パック数</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td class="c">${r.it.code}</td><td>${r.it.name}<br><span style="font-size:9.5px;color:#8C8F97">${r.it.spec}</span></td><td class="q">${r.v}<span style="font-size:9.5px;font-weight:400;padding-left:3px">パック</span></td></tr>`).join("")}
+      <tr><td colspan="2" style="text-align:right;font-weight:700">総パック数</td><td class="q">${tp}</td></tr></tbody></table>
+      ${tp<2?`<div class="pfoot"><span class="warn">総パック数が2パック未満です。先方は2パック以上からの受付です。</span></div>`:""}`;
+  }else{
+    body=`<div class="freelist">${rows.map(r=>`<div class="freerow"><span class="n">${r.it.name}</span><span class="x">×</span><span class="v">${r.v}</span><span class="u2">${r.it.unit}</span></div>`).join("")}</div>`;
+  }
+  const memo=m.memo?`<div class="pmemo"><b>備考</b>${m.memo}</div>`:"";
+  let foot=`<div class="pfoot">${SHOP.name}　TEL ${SHOP.tel}<br>${SHOP.zip} ${SHOP.addr}</div>`;
+  if(s.id==="seiko")foot=`<div class="pfoot"><span class="warn">※1回の発注は2本以上でお願いします</span><br>※納品は月・木曜日（土日祝を除く）<br><br>${SHOP.name}　TEL ${SHOP.tel}</div>`;
+  if(s.id==="kankyo")foot=`<div class="pfoot">顧客コード ${s.custNo}<br>${SHOP.zip} ${SHOP.addr}<br>事業所名 ${SHOP.name}　TEL ${SHOP.tel}</div>`;
+
+  return `<div class="paper"><div class="seal ${stamped?"on":""}">送信<br>済</div>
+    <div class="ptitle">${s.title}</div>
+    <div class="pto"><span><span class="vendor">${s.name}　御中</span><br><span class="faxno">FAX ${s.fax}</span></span>
+      <span class="right"><b style="font-size:12.5px">${SHOP.name}　様</b><br>
+        <span class="faxno">発注 ${fmt(now)}</span><br>
+        <span class="faxno">${dd} 納品分${m.slot?"（"+m.slot+"）":""}</span>
+        ${s.custNo&&s.id==="seiko"?`<br><span class="faxno">No. ${s.custNo}</span>`:""}</span></div>
+    ${body}${memo}${foot}</div>`;
+}
+
+function openSheets(){
+  const a=active();if(!a.length)return;
+  $("#sheetlbl").textContent=`内容を確認　発注書 ${a.length}枚`;
+  $("#sheets").innerHTML=a.map(s=>paper(s,false)).join("");
+  $("#scrim").classList.add("show");document.body.style.overflow="hidden";
+}
+function closeSheets(){$("#scrim").classList.remove("show");document.body.style.overflow=""}
+
+function doSend(){
+  const a=active(),d=new Date();
+  document.querySelectorAll("#sheets .seal").forEach((el,i)=>setTimeout(()=>el.classList.add("on"),i*130));
+  a.forEach(s=>{const au=calcDelivery(s,d),m=M(s);
+    history.unshift({sup:s.id,name:s.name,date:fmt(d),ts:d.getTime(),
+      deliv:au?fmt(au):(m.date?fmt(new Date(m.date+"T00:00")):"未指定"),slot:m.slot||"",memo:m.memo||"",
+      lines:s.items.map((it,i)=>({name:it.name,unit:it.unit,v:q(s,i)})).filter(l=>l.v>0)})});
+  save();
+  $("#confirm").disabled=true;$("#confirm").textContent="送信しました（モック）";
+  setTimeout(()=>{closeSheets();qty={};meta={};
+    $("#confirm").disabled=false;$("#confirm").textContent="この内容でFAX送信";
+    renderList();renderHist();renderSum();toast(`${a.length}軒に送信しました`)},1250);
+}
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("on");setTimeout(()=>el.classList.remove("on"),2100)}
+
+function renderHist(){
+  const p=$("#pane-hist");
+  if(!history.length){p.innerHTML=`<div class="empty">まだ送信していません。<br>送るとここに控えが残ります。<br><br>紙のFAXでは残らない部分です。</div>`;return}
+  p.innerHTML=`<p class="eyebrow">送信した発注の控え</p>`+history.slice(0,60).map(h=>
+    `<div class="hrec"><div class="hd"><span class="dt">${h.date}　${h.name}</span><span class="st">送信済</span></div>
+     <div class="bd">${h.lines.map(l=>`${l.name} <em>${l.v}</em>${l.unit}`).join("　/　")}</div>
+     <div class="dl">${h.deliv} 納品${h.slot?"（"+h.slot+"）":""}</div>
+     ${h.memo?`<div class="bd" style="margin-top:4px;font-size:11.5px">備考: ${h.memo}</div>`:""}</div>`).join("");
+}
+
+const DEMO=[{name:"玉葱",unit:"玉",v:214},{name:"白滝",unit:"P",v:96},{name:"牛スジ",unit:"kg",v:62},
+{name:"大根",unit:"本",v:58},{name:"八海山",unit:"本",v:34},{name:"玉子L",unit:"P",v:28},
+{name:"ぎょうざ巻",unit:"ケ",v:24},{name:"青ねぎカットM（0.5キロ）",unit:"P",v:22},
+{name:"ジャガイモ（馬鈴薯）",unit:"kg",v:18},{name:"景虎",unit:"本",v:16},{name:"椎茸",unit:"P",v:14}];
+function renderSum(){
+  const p=$("#pane-sum"),now=new Date(),m0=new Date(now.getFullYear(),now.getMonth(),1).getTime(),agg={};
+  history.filter(h=>h.ts>=m0).forEach(h=>h.lines.forEach(l=>{const k=l.name+"|"+l.unit;agg[k]=(agg[k]||0)+l.v}));
+  let rows=Object.entries(agg).map(([k,v])=>({name:k.split("|")[0],unit:k.split("|")[1],v})).sort((a,b)=>b.v-a.v);
+  const isDemo=!rows.length;if(isDemo)rows=DEMO;
+  const max=rows[0].v;
+  p.innerHTML=(isDemo?`<div class="demo">サンプルです。1か月使うと送った発注がそのまま積み上がります。<br>金額は入りません。発注書に単価が載らないためです。単価を出すには請求書を読み取る仕組みが別に必要です。</div>`:"")
+    +`<p class="eyebrow">${now.getMonth()+1}月の発注数量　品目別</p>`
+    +rows.map(r=>`<div class="trow"><span class="tn">${r.name}</span>
+      <span class="bararea"><i style="width:${Math.round(r.v/max*100)}%"></i></span>
+      <span class="tv">${r.v}<span>${r.unit}</span></span></div>`).join("")
+    +`<div class="pfoot" style="margin-top:14px;color:#8C8F97">これは発注数で、納品数ではありません。欠品や代替品、電話での追加分があると請求書とずれます。</div>`;
+}
+
+/* ===== ＋ − の長押しで連続加減算 =====
+   連打すると iOS がダブルタップ拡大と誤認するので、押しっぱなしで増える形にする。
+   保持中は全体を描き直さず、その行の数字だけ書き換える。 */
+let hold=null, byPointer=false;
+function bump(s,i,d){
+  qty[key(s,i)]=Math.max(0,q(s,i)+d);
+  const inp=document.querySelector(`input[data-act=set][data-s="${s.id}"][data-i="${i}"]`);
+  if(inp){const v=q(s,i);inp.value=v||"";inp.closest(".row").classList.toggle("filled",v>0)}
+}
+function stopHold(){
+  if(!hold)return;
+  clearTimeout(hold.t);clearInterval(hold.iv);
+  hold.btn.classList.remove("hold");
+  hold=null;
+  renderList();   // 納品日・件数・発注リストをまとめて更新
+}
+$("#list").addEventListener("pointerdown",e=>{
+  const b=e.target.closest("button[data-act=inc],button[data-act=dec]");
+  if(!b)return;
+  const s=SUPPLIERS.find(x=>x.id===b.dataset.s),i=+b.dataset.i;
+  const d=b.dataset.act==="inc"?1:-1;
+  byPointer=true;
+  b.classList.add("hold");
+  bump(s,i,d);
+  let speed=180;
+  hold={btn:b,t:setTimeout(()=>{                       // 0.4秒押し続けたら連続
+    hold.iv=setInterval(()=>{
+      bump(s,i,d);
+      if(speed>55){speed-=12;clearInterval(hold.iv);    // だんだん速く
+        hold.iv=setInterval(()=>bump(s,i,d),speed)}
+    },speed);
+  },400),iv:null};
+});
+["pointerup","pointercancel","pointerleave"].forEach(ev=>
+  $("#list").addEventListener(ev,stopHold));
+
+$("#list").addEventListener("click",e=>{
+  const head=e.target.closest(".cardhead");
+  if(head){const id=head.closest(".card").dataset.s;open=(open===id)?null:id;renderList();return}
+  const b=e.target.closest("button[data-act]");if(!b)return;
+  const s=SUPPLIERS.find(x=>x.id===b.dataset.s),i=+b.dataset.i,act=b.dataset.act;
+  if(act==="inc"||act==="dec"){
+    if(byPointer){byPointer=false;return}   // 指の操作は pointerdown 側で処理済み
+    qty[key(s,i)]=Math.max(0,q(s,i)+(act==="inc"?1:-1));
+  }
+  if(act==="prev"){const last=history.find(h=>h.sup===s.id);
+    s.items.forEach((it,j)=>{qty[key(s,j)]=last?((last.lines.find(l=>l.name===it.name)||{}).v||0):(it.prev||0)});
+    toast(last?"前回の送信内容を入れました":"よく頼む数量を入れました")}
+  if(act==="clr")s.items.forEach((_,j)=>delete qty[key(s,j)]);
+  renderList();
+});
+$("#list").addEventListener("change",e=>{
+  const inp=e.target.closest("[data-act=set]");
+  if(inp){const s=SUPPLIERS.find(x=>x.id===inp.dataset.s);
+    qty[key(s,+inp.dataset.i)]=Math.max(0,parseInt(inp.value||"0",10)||0);renderList();return}
+  const f=e.target.closest("[data-fld]");
+  if(f){const s=SUPPLIERS.find(x=>x.id===f.dataset.s);M(s)[f.dataset.fld]=f.value;renderList()}
+});
+$("#send").addEventListener("click",openSheets);
+$("#close").addEventListener("click",closeSheets);
+$("#confirm").addEventListener("click",doSend);
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+  pane=t.dataset.p;
+  document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",String(x===t)));
+  ["order","hist","sum"].forEach(k=>$("#pane-"+k).classList.toggle("show",k===pane));
+  const T={order:["発注","仕入先6軒 · 数量を入れた分だけ送ります"],hist:["履歴","紙のFAXでは残らない控え"],sum:["数量","今月なにをどれだけ仕入れたか"]};
+  $("#ptitle").textContent=T[pane][0];$("#psub").textContent=T[pane][1];
+  $("#send").style.display=pane==="order"?"":"none";window.scrollTo(0,0);
+}));
+(async()=>{$("#today").textContent=fmt(new Date());await load();renderList();renderHist();renderSum()})();
+</script>
+</body>
+</html>
